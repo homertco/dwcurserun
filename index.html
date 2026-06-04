@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Curse Run Generator</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+<style>
+    :root {
+        --bg: #0e0e10;
+        --panel: #1a1a1f;
+        --panel2: #23232a;
+        --text: #ffffff;
+        --accent: #4caf50;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+
+        min-height: 100vh;
+        padding: 16px;
+    }
+
+    .app {
+        width: min(100%, 720px);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    header {
+        text-align: left;
+        padding: 10px 6px;
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: clamp(18px, 5vw, 28px);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    header p {
+        margin: 6px 0 0 0;
+        opacity: 0.7;
+        font-size: clamp(12px, 3.5vw, 14px);
+    }
+
+    .controls {
+        background: var(--panel);
+        padding: 12px;
+        border-radius: 12px;
+
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    select, button {
+        flex: 1;
+        min-width: 120px;
+
+        padding: 12px;
+        font-size: 14px;
+
+        border-radius: 10px;
+        border: none;
+    }
+
+    select {
+        background: var(--panel2);
+        color: var(--text);
+    }
+
+    button {
+        background: var(--accent);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        background: #666;
+        cursor: not-allowed;
+    }
+
+    .output {
+        background: var(--panel);
+        border-radius: 14px;
+        padding: 14px;
+        min-height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #display {
+        width: 100%;
+        font-size: clamp(14px, 4.2vw, 18px);
+        line-height: 1.5;
+        white-space: pre-line;
+    }
+
+    .grey {
+        filter: grayscale(1);
+        opacity: 0.65;
+    }
+
+    @media (max-width: 480px) {
+        .controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        select, button {
+            width: 100%;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app" id="container">
+
+    <header>
+        <h1>Curse Run Generator</h1>
+        <p>Generate randomized challenge modifiers</p>
+    </header>
+
+    <div class="controls">
+        <select id="count">
+            <option value="1">1 item</option>
+            <option value="2">2 items</option>
+            <option value="3">3 items</option>
+            <option value="4">4 items</option>
+            <option value="5">5 items</option>
+            <option value="6">6 items</option>
+            <option value="7">7 items</option>
+            <option value="8">8 items</option>
+        </select>
+
+        <button id="btn">Generate</button>
+    </div>
+
+    <div class="output">
+        <div id="display">Press generate</div>
+    </div>
+
+</div>
+
+<script>
+const items = [
+    "100% volume",
+    "0% volume",
+    "0% brightness",
+    "100% brightness",
+    "Only speak in stickers",
+    "Don’t use any abbreviation",
+    "Everyone distracts except one player",
+    "Only touch the colors of your character (includes skin)",
+    "Only touch the colors of your character (excludes skin)",
+    "Dont use any items",
+    "Dont use any perks (including abilities or running)",
+    "Everyone must speak in poems",
+    "Everyone must speak in haikus",
+    "Use the toon on the board",
+    "Dont extract if you see the toon on the board (limited to half the extractors)",
+    "Dont use your active ability",
+    "No voting",
+    "Use sprint as much as you can",
+    "Get to ele in panic mode last second",
+    "Get aggro for atleast 30 seconds (Non-distractor)",
+    "Fail every skillcheck",
+    "Dont get agro for 5 floors at a time (1 floor inbetween allowed)",
+    "Always buy from dandy",
+    "Never buy from dandy",
+    "Always be on one heart",
+    "Always be on full hearts",
+    "Never touch ichor puddle",
+    "Must get hit on the floor",
+    "Cant move for 2 floors",
+    "Reroll 1x",
+    "Reroll 2x",
+    "Reroll 4x",
+    "Only use 1 item slot",
+    "Only pick up candies",
+    "SAFE"
+];
+
+const display = document.getElementById("display");
+const btn = document.getElementById("btn");
+const container = document.getElementById("container");
+const countSelect = document.getElementById("count");
+
+function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}
+
+async function spin() {
+    btn.disabled = true;
+    countSelect.disabled = true;
+    container.classList.add("grey");
+
+    const count = parseInt(countSelect.value);
+    const duration = 3500;
+    const start = Date.now();
+
+    while (Date.now() - start < duration) {
+        const elapsed = Date.now() - start;
+        const progress = elapsed / duration;
+
+        const speed = 40 + progress * 260;
+
+        const preview = [];
+        for (let i = 0; i < count; i++) {
+            preview.push(items[Math.floor(Math.random() * items.length)]);
+        }
+
+        display.textContent = preview.join("\n");
+
+        await sleep(speed);
+    }
+
+    const result = [];
+    for (let i = 0; i < count; i++) {
+        result.push(items[Math.floor(Math.random() * items.length)]);
+    }
+
+    display.textContent = result.join("\n");
+
+    container.classList.remove("grey");
+    btn.disabled = false;
+    countSelect.disabled = false;
+
+    confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 }
+    });
+}
+
+btn.addEventListener("click", spin);
+</script>
+
+</body>
+</html>
